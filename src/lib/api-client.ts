@@ -73,6 +73,25 @@ export interface ActionResponse {
   data?: any
 }
 
+export interface ClusterIssue {
+  id: string
+  severity: 'critical' | 'warning'
+  title: string
+  resourceKind: string
+  resourceName: string
+  namespace?: string
+  message: string
+  recommendation: string
+  since?: string
+}
+
+export interface IssueSnapshot {
+  mode: 'live' | 'demo'
+  checkedAt: string
+  alerts: ClusterIssue[]
+  message?: string
+}
+
 export interface CustomResourceDefinitionItem {
   name: string
   group: string
@@ -167,6 +186,10 @@ class ApiClient {
 
   async getClusterInfo(): Promise<ClusterInfo> {
     return this.fetchJson<ClusterInfo>('/api/cluster')
+  }
+
+  async getClusterIssues(): Promise<IssueSnapshot> {
+    return this.fetchJson<IssueSnapshot>('/api/issues')
   }
 
   async getPods(namespace?: string): Promise<Pod[]> {

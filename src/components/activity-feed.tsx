@@ -12,8 +12,7 @@ import {
   Server, 
   AlertTriangle,
   Clock,
-  RefreshCw,
-  CheckCircle2
+  RefreshCw
 } from "lucide-react"
 
 interface ActivityItem {
@@ -73,7 +72,6 @@ const formatTimeAgo = (timestamp: Date | string) => {
 export function ActivityFeed() {
   const [activities, setActivities] = useState<ActivityItem[]>([])
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [loading, setLoading] = useState(true)
 
   const fetchActivities = async () => {
     try {
@@ -84,8 +82,6 @@ export function ActivityFeed() {
       }
     } catch (error) {
       console.error('Failed to fetch activities:', error)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -109,7 +105,7 @@ export function ActivityFeed() {
             <Activity className="size-4 text-emerald-500" />
             Activity Stream
           </CardTitle>
-          <CardDescription>Real-time cluster audit log and lifecycle events</CardDescription>
+          <CardDescription>Dashboard activity recorded in this session</CardDescription>
         </div>
         <Button
           variant="outline"

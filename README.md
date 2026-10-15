@@ -20,7 +20,8 @@ For a first-person, plain-English project walkthrough for interviews, see [PROJE
 - **AI Workloads & GPU Observability**: Full GPU accelerator hardware monitoring (`nvidia.com/gpu`, AMD, MIG slices, VRAM footprints) and real-time tracking of AI serving runtimes (**vLLM**, **Ollama**, **KubeRay**, **HuggingFace TGI**).
 - **Workload Autoscaling (HPA / VPA)**: Dedicated autoscaling control plane monitoring `HorizontalPodAutoscaler` v2 targets, utilization vs. thresholds, min/max replica ceilings, and conditions.
 - **GitOps Awareness & Mutation Guards**: Automated detection of **ArgoCD** and **FluxCD** application tags, sync status badges, and imperative mutation safeguard warnings before scaling or deleting GitOps-tracked workloads.
-- **Real Metrics & Resource Monitoring**: Direct integration with Kubernetes Metrics Server (`metrics.k8s.io/v1beta1`) for real CPU/memory allocation, pod density tracking, and trend analysis.
+- **Metrics Server Integration**: The Kubernetes client can query node metrics from Metrics Server (`metrics.k8s.io/v1beta1`), but the homepage resource-allocation chart is illustrative sample data, not a live telemetry view.
+- **Live Issue Monitor**: Checks Kubernetes warning events, unhealthy or restarting pods, unavailable deployment replicas, and NotReady nodes every 15 seconds, then suggests diagnostic next steps without automatically changing workloads. Live checks require cluster access and read permissions; demo mode is clearly labeled.
 - **Interactive xterm.js Web Terminal**: Full ANSI PTY terminal powered by `@xterm/xterm` with `@kubernetes/client-node` container `Exec` streaming, command history, auto-resizing, and quick diagnostic shortcuts.
 - **Dynamic CRD Explorer**: Auto-discover, search, and inspect `apiextensions.k8s.io/v1` Custom Resource Definitions (Cert-Manager, Istio, Prometheus, Karpenter, Kyverno) with live YAML viewing.
 - **Gateway API Dashboard**: First-class support for `gateway.networking.k8s.io` (`GatewayClass`, `Gateway`, `HTTPRoute`) including listener protocols, ports, and weighted backend canary routing.
@@ -31,6 +32,12 @@ For a first-person, plain-English project walkthrough for interviews, see [PROJE
 - **Helm Hub**: Overview of deployed Helm releases, chart revisions, and quick rollback/uninstall management.
 - **Dual-Mode Operation**: Connects directly to real Kubernetes clusters via your local KubeConfig, with a built-in interactive demo engine when no cluster is reachable.
 - **Streaming Gemini Assistant**: Ask Kubernetes and troubleshooting questions in an interactive chat panel. Gemini credentials stay on the server, and generated replies stream into the dashboard.
+
+## ⚠️ Current Limitations
+
+The issue monitor provides near-real-time health checks, not a complete production observability or incident-response system. It checks Kubernetes warning events, pod state, Deployment replica availability, and node readiness every 15 seconds. It does not currently detect CPU or memory saturation, send Slack or email notifications, or automatically remediate resources. Demo mode uses sample data and does not monitor a real cluster. The live-cluster checks have not yet been validated against a real cluster in this project environment.
+
+The homepage resource-allocation chart is illustrative sample data, not live telemetry. Although the application can query Kubernetes Metrics Server, CPU and memory saturation alerts are not implemented.
 
 ---
 

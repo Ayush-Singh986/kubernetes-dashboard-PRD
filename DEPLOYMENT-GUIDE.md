@@ -8,6 +8,8 @@ Install Node.js 20 or newer, Git, Docker Desktop with Docker Compose, and `kubec
 
 The Compose configuration deliberately sets `NEXT_PUBLIC_DEMO_MODE=true`, so Compose is for previewing the dashboard with sample data. The Kubernetes manifests use a ServiceAccount to connect the deployed dashboard to a cluster. The included RBAC manifest grants broad cluster permissions, including access to Secrets and resource mutation; it should be reduced to the permissions the organization actually requires before a production deployment. The browser sign-in is demo-only, and the manifests do not configure production user authentication or TLS. Do not expose this dashboard publicly until those controls are supplied and reviewed.
 
+The dashboard's Live Issue Monitor polls cluster pods, nodes, Deployments, and recent Warning events every 15 seconds. It identifies common health signals (such as NotReady nodes, unavailable replicas, failed or restarting pods, and recent warning events) and suggests investigation steps; it does not diagnose every application failure or automatically remediate resources. It does not send Slack or email notifications, and CPU/memory saturation detection is not implemented. Live checks need read access to pods, nodes, Deployments, and events. Demo mode does not monitor a real cluster. The Resource Allocation chart is illustrative sample data, not a live measurement. Live-cluster checks have not yet been validated against a real cluster in this project environment.
+
 The Kubernetes manifest initially refers to `kubernetes-dashboard:latest`, an image name intended for a local build. The Kubernetes deployment instructions below replace it with the image you build and push to your own image registry.
 
 ## Run and validate the project locally

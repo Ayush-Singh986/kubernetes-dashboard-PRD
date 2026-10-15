@@ -1,9 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { 
   Cpu, 
@@ -12,9 +11,7 @@ import {
   TrendingUp, 
   TrendingDown, 
   Minus, 
-  RefreshCw, 
   Server,
-  Activity
 } from "lucide-react"
 
 interface ResourceMetric {
@@ -84,27 +81,8 @@ const getTrendIcon = (trend: 'up' | 'down' | 'stable') => {
 }
 
 export function ResourceCharts() {
-  const [nodeResources, setNodeResources] = useState<NodeResource[]>(mockNodeResources)
-  const [isRefreshing, setIsRefreshing] = useState(false)
+  const nodeResources = mockNodeResources
   const [selectedNode, setSelectedNode] = useState<string>('all')
-
-  const refreshData = async () => {
-    setIsRefreshing(true)
-    setTimeout(() => {
-      setNodeResources(prev => prev.map(node => ({
-        ...node,
-        cpu: {
-          ...node.cpu,
-          percentage: Math.min(100, Math.max(10, node.cpu.percentage + (Math.random() * 20 - 10)))
-        },
-        memory: {
-          ...node.memory,
-          percentage: Math.min(100, Math.max(10, node.memory.percentage + (Math.random() * 15 - 7.5)))
-        }
-      })))
-      setIsRefreshing(false)
-    }, 600)
-  }
 
   const filteredNodes = selectedNode === 'all' 
     ? nodeResources 
@@ -120,11 +98,11 @@ export function ResourceCharts() {
         <div>
           <CardTitle className="text-base flex items-center gap-2">
             <Server className="size-4 text-sky-500" />
-            Cluster Resource Allocation
+            Sample Resource Allocation
           </CardTitle>
-          <CardDescription>Live compute, memory, and disk telemetry across active nodes</CardDescription>
+          <CardDescription>Illustrative sample values only; this chart is not connected to live cluster metrics.</CardDescription>
         </div>
-        <div className="flex items-center gap-2">
+        <div>
           <select 
             value={selectedNode} 
             onChange={(e) => setSelectedNode(e.target.value)}
@@ -135,15 +113,6 @@ export function ResourceCharts() {
               <option key={node.name} value={node.name}>{node.name}</option>
             ))}
           </select>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={refreshData}
-            disabled={isRefreshing}
-            className="size-8 rounded-lg"
-          >
-            <RefreshCw className={`size-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const coreApi = kc.makeApiClient(k8s.CoreV1Api)
     const versionApi = kc.makeApiClient(k8s.VersionApi)
 
-    const [versionRes, nodesRes, podsRes, svcRes, nsRes] = await Promise.allSettled([
+    const [versionRes, nodesRes, podsRes, svcRes, nsRes] = await Promise.all([
       versionApi.getCode(),
       coreApi.listNode(),
       coreApi.listPodForAllNamespaces(),
@@ -28,25 +28,22 @@ export async function GET(request: NextRequest) {
       coreApi.listNamespace()
     ])
 
-    const nodesCount = nodesRes.status === 'fulfilled' ? nodesRes.value.items.length : k8sStore.getNodes().length
-    const podsCount = podsRes.status === 'fulfilled' ? podsRes.value.items.length : k8sStore.getPods().length
-    const servicesCount = svcRes.status === 'fulfilled' ? svcRes.value.items.length : k8sStore.getServices().length
-    const namespacesCount = nsRes.status === 'fulfilled' ? nsRes.value.items.length : k8sStore.getNamespaces().length
-    const version = versionRes.status === 'fulfilled' ? `v${versionRes.value.major}.${versionRes.value.minor}` : 'v1.28.2'
-    const clusterName = kc.getCurrentCluster()?.name || 'production-cluster'
+    const version = `v${versionRes.major}.${versionRes.minor}`
+    const clusterName = kc.getCurrentCluster()?.name || kc.getCurrentContext() || 'Current cluster'
 
     return NextResponse.json({
       name: clusterName,
       version,
-      nodes: nodesCount,
-      pods: podsCount,
-      services: servicesCount,
-      namespaces: namespacesCount,
-      cpuUsage: 45.2,
-      memoryUsage: 58.1
+      nodes: nodesRes.items.length,
+      pods: podsRes.items.length,
+      services: svcRes.items.length,
+      namespaces: nsRes.items.length
     })
   } catch (error) {
-    console.error('Error fetching cluster info from K8s, using store fallback:', error)
-    return NextResponse.json(k8sStore.getClusterInfo())
+    console.error('Error fetching live cluster info:', error)
+    return NextResponse.json(
+      { error: 'Unable to fetch live cluster information. Verify cluster connectivity and read permissions.' },
+      { status: 503 }
+    )
   }
 }

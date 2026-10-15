@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { ProtectedRoute } from "@/components/protected-route"
 import { ActivityFeed } from "@/components/activity-feed"
+import { ClusterIssueMonitor } from "@/components/cluster-issue-monitor"
 import { ResourceCharts } from "@/components/resource-charts"
 import { QuickActions } from "@/components/quick-actions"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,21 +12,15 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { apiClient, ClusterInfo, Pod, Node, Service } from "@/lib/api-client"
 import { 
-  Activity, 
   Container, 
-  Database, 
   Server,
   Shield,
-  Eye,
   ArrowUpRight,
-  CheckCircle2,
   Clock,
   AlertTriangle,
   Network,
   RefreshCw,
-  TrendingUp,
-  Layers,
-  Zap
+  Layers
 } from "lucide-react"
 
 export default function Home() {
@@ -37,7 +32,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
   const [isDemoMode, setIsDemoMode] = useState(false)
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       const [info, podsData, nodesData, servicesData] = await Promise.all([
@@ -51,18 +46,20 @@ export default function Home() {
       setPods(podsData)
       setNodes(nodesData)
       setServices(servicesData)
-      
+      setError(null)
       setIsDemoMode(info.name === 'demo-cluster')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch cluster data')
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    void fetchData()
+    const interval = window.setInterval(fetchData, 15000)
+    return () => window.clearInterval(interval)
+  }, [fetchData])
 
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
@@ -120,7 +117,7 @@ export default function Home() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Kubernetes v1.28.2 • 4 active nodes • {runningPodsCount}/{pods.length || 8} healthy pods running
+                    Kubernetes {clusterInfo?.version || (loading ? "…" : "version unavailable")} • {clusterInfo?.nodes ?? nodes.length} nodes • {runningPodsCount}/{pods.length} running pods
                   </p>
                 </div>
               </div>
@@ -139,6 +136,16 @@ export default function Home() {
             </div>
           </div>
 
+          {error && (
+            <div role="alert" className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+              <div>
+                <p className="font-semibold">Unable to refresh cluster overview</p>
+                <p className="mt-1">{error}</p>
+              </div>
+            </div>
+          )}
+
           {/* Metrics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             <Card className="hover:border-primary/40 transition-all duration-200">
@@ -153,14 +160,14 @@ export default function Home() {
               <CardContent>
                 <div className="flex items-baseline justify-between">
                   <div className="text-2xl font-bold tracking-tight text-foreground font-mono">
-                    {clusterInfo?.nodes || nodes.length || 4}
+                    {clusterInfo?.nodes ?? nodes.length}
                   </div>
                   <Badge variant="success" className="text-[10px] h-4.5 px-1.5 font-semibold">
-                    {readyNodesCount || 3} Schedulable
+                    {readyNodesCount} Ready
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
-                  <span>32 Core compute pool</span>
+                  <span>Current cluster node inventory</span>
                 </p>
               </CardContent>
             </Card>
@@ -177,7 +184,7 @@ export default function Home() {
               <CardContent>
                 <div className="flex items-baseline justify-between">
                   <div className="text-2xl font-bold tracking-tight text-foreground font-mono">
-                    {clusterInfo?.pods || pods.length}
+                    {clusterInfo?.pods ?? pods.length}
                   </div>
                   <Badge variant="success" className="text-[10px] h-4.5 px-1.5 font-semibold">
                     {runningPodsCount} Running
@@ -201,10 +208,10 @@ export default function Home() {
               <CardContent>
                 <div className="flex items-baseline justify-between">
                   <div className="text-2xl font-bold tracking-tight text-foreground font-mono">
-                    {clusterInfo?.services || services.length || 5}
+                    {clusterInfo?.services ?? services.length}
                   </div>
                   <Badge variant="purple" className="text-[10px] h-4.5 px-1.5 font-semibold">
-                    Ingress Ready
+                    Observed
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
@@ -225,14 +232,11 @@ export default function Home() {
               <CardContent>
                 <div className="flex items-baseline justify-between">
                   <div className="text-2xl font-bold tracking-tight text-foreground font-mono">
-                    {clusterInfo?.namespaces || 4}
+                    {clusterInfo?.namespaces ?? 0}
                   </div>
-                  <Badge variant="warning" className="text-[10px] h-4.5 px-1.5 font-semibold">
-                    Isolated
-                  </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
-                  <span>RBAC boundary partitions</span>
+                  <span>Namespaces in the selected cluster</span>
                 </p>
               </CardContent>
             </Card>
@@ -243,6 +247,9 @@ export default function Home() {
 
           {/* Resource Telemetry Charts */}
           <ResourceCharts />
+
+          {/* Live health checks */}
+          <ClusterIssueMonitor />
 
           {/* Recent Resources & Activity Stream */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
