@@ -73,6 +73,12 @@ npm run dev
 # Access at http://localhost:3000
 ```
 
+## 🏗️ Architecture
+
+![3D architecture diagram of the Kubernetes Dashboard](./public/images/architecture-3d.svg)
+
+Browser traffic reaches the dashboard through a Kubernetes Service and is handled by the Next.js application replicas. The server-side API routes use the dashboard ServiceAccount and RBAC binding to access cluster resources. Gemini is an optional server-side integration; demo mode can supply sample data when no cluster is reachable. See the [deployment guide](./DEPLOYMENT-GUIDE.md) and [Kubernetes manifests](./k8s/) for deployment details.
+
 ---
 
 ## 📄 Dashboard Pages & Routes

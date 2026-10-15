@@ -1,0 +1,212 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" fill="none" role="img" aria-labelledby="title description">
+  <title id="title">Kubernetes Dashboard 3D Architecture</title>
+  <desc id="description">A three-dimensional architecture diagram showing browser traffic entering the Kubernetes dashboard Service, reaching two Next.js application pods, and using service-account RBAC to access the Kubernetes API, metrics, and cluster resources. Optional Gemini AI and demo mode are also shown.</desc>
+  <defs>
+    <linearGradient id="background" x1="100" y1="40" x2="1330" y2="870" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B1222"/>
+      <stop offset="1" stop-color="#111C34"/>
+    </linearGradient>
+    <linearGradient id="clusterFill" x1="585" y1="154" x2="1378" y2="789" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#14233B" stop-opacity=".86"/>
+      <stop offset="1" stop-color="#17223A" stop-opacity=".58"/>
+    </linearGradient>
+    <linearGradient id="blueTop" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+    <linearGradient id="blueFront" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#1D4ED8"/>
+      <stop offset="1" stop-color="#1E40AF"/>
+    </linearGradient>
+    <linearGradient id="cyanTop" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#67E8F9"/>
+      <stop offset="1" stop-color="#0891B2"/>
+    </linearGradient>
+    <linearGradient id="cyanFront" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#0E7490"/>
+      <stop offset="1" stop-color="#155E75"/>
+    </linearGradient>
+    <linearGradient id="violetTop" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#C4B5FD"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="violetFront" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#6D28D9"/>
+      <stop offset="1" stop-color="#5B21B6"/>
+    </linearGradient>
+    <linearGradient id="greenTop" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#6EE7B7"/>
+      <stop offset="1" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="greenFront" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#047857"/>
+      <stop offset="1" stop-color="#065F46"/>
+    </linearGradient>
+    <linearGradient id="amberTop" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FDE68A"/>
+      <stop offset="1" stop-color="#D97706"/>
+    </linearGradient>
+    <linearGradient id="amberFront" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#B45309"/>
+      <stop offset="1" stop-color="#92400E"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="9"/>
+      <feOffset dy="10"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope=".32"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#60A5FA"/>
+    </marker>
+    <marker id="arrowCyan" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#67E8F9"/>
+    </marker>
+    <marker id="arrowViolet" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#C4B5FD"/>
+    </marker>
+    <style>
+      text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .title { fill: #F8FAFC; font-size: 31px; font-weight: 700; letter-spacing: -.5px; }
+      .subtitle { fill: #A7B5CC; font-size: 15px; }
+      .cardTitle { fill: #F8FAFC; font-size: 17px; font-weight: 700; }
+      .cardText { fill: #D6E1F1; font-size: 13px; }
+      .small { fill: #A7B5CC; font-size: 12px; }
+      .tiny { fill: #A7B5CC; font-size: 11px; }
+      .clusterTitle { fill: #DBEAFE; font-size: 14px; font-weight: 700; letter-spacing: 1.3px; }
+      .tag { font-size: 10px; font-weight: 700; letter-spacing: .8px; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="900" rx="28" fill="url(#background)"/>
+  <circle cx="1250" cy="95" r="180" fill="#2563EB" opacity=".08"/>
+  <circle cx="210" cy="790" r="210" fill="#7C3AED" opacity=".07"/>
+  <path d="M0 124H1440" stroke="#293750"/>
+
+  <text x="54" y="66" class="title">Kubernetes Dashboard</text>
+  <text x="56" y="94" class="subtitle">3D application architecture · Next.js dashboard running in Kubernetes</text>
+  <rect x="1180" y="48" width="205" height="32" rx="16" fill="#1E293B" stroke="#334155"/>
+  <circle cx="1200" cy="64" r="5" fill="#34D399"/>
+  <text x="1213" y="68" class="small" fill="#D1FAE5">CLUSTER MANAGEMENT UI</text>
+
+  <rect x="584" y="148" width="800" height="644" rx="26" fill="url(#clusterFill)" stroke="#385174" stroke-width="1.5" stroke-dasharray="8 7"/>
+  <rect x="612" y="131" width="225" height="34" rx="17" fill="#1E3A5F" stroke="#41658F"/>
+  <circle cx="632" cy="148" r="5" fill="#60A5FA"/>
+  <text x="646" y="153" class="clusterTitle">KUBERNETES CLUSTER</text>
+
+  <path d="M272 370H342" stroke="#60A5FA" stroke-width="3" marker-end="url(#arrowBlue)"/>
+  <path d="M521 370H653" stroke="#60A5FA" stroke-width="3" marker-end="url(#arrowBlue)"/>
+  <path d="M893 370H1000" stroke="#67E8F9" stroke-width="3" marker-end="url(#arrowCyan)"/>
+  <path d="M1130 443V526" stroke="#67E8F9" stroke-width="3" marker-end="url(#arrowCyan)"/>
+  <path d="M765 480V574" stroke="#C4B5FD" stroke-width="2.5" marker-end="url(#arrowViolet)"/>
+  <path d="M706 480V515H314V705H306" stroke="#C4B5FD" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#arrowViolet)"/>
+  <text x="284" y="352" class="tiny">HTTP</text>
+  <text x="542" y="352" class="tiny">HTTP :80 → :3000</text>
+  <text x="907" y="352" class="tiny">in-cluster API</text>
+  <text x="1142" y="489" class="tiny">read / watch</text>
+  <text x="776" y="529" class="tiny">service account token</text>
+  <text x="436" y="552" class="tiny" fill="#C4B5FD">optional server-side AI call</text>
+
+  <g filter="url(#shadow)">
+    <polygon points="74,320 162,277 271,320 183,363" fill="#1E3A5F" stroke="#60A5FA"/>
+    <polygon points="74,320 183,363 183,441 74,398" fill="url(#blueFront)" stroke="#3B82F6"/>
+    <polygon points="183,363 271,320 271,398 183,441" fill="#1E40AF" stroke="#3B82F6"/>
+    <text x="119" y="331" class="cardTitle">Browser</text>
+    <text x="104" y="379" class="cardText">Platform engineer</text>
+    <text x="104" y="399" class="small">Dashboard UI · HTTP</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon points="344,320 431,277 521,320 434,363" fill="url(#cyanTop)" stroke="#A5F3FC"/>
+    <polygon points="344,320 434,363 434,441 344,398" fill="url(#cyanFront)" stroke="#22D3EE"/>
+    <polygon points="434,363 521,320 521,398 434,441" fill="#155E75" stroke="#22D3EE"/>
+    <text x="370" y="331" class="cardTitle">Kubernetes</text>
+    <text x="370" y="351" class="cardTitle">Service</text>
+    <text x="367" y="384" class="cardText">ClusterIP :80</text>
+    <text x="365" y="404" class="small">NodePort / port-forward</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon points="661,286 772,231 891,286 780,341" fill="url(#blueTop)" stroke="#BFDBFE"/>
+    <polygon points="661,286 780,341 780,445 661,390" fill="url(#blueFront)" stroke="#60A5FA"/>
+    <polygon points="780,341 891,286 891,390 780,445" fill="#1E40AF" stroke="#60A5FA"/>
+    <text x="691" y="297" class="cardTitle">Dashboard Deployment</text>
+    <rect x="687" y="311" width="163" height="20" rx="10" fill="#1E3A8A" stroke="#60A5FA"/>
+    <text x="701" y="325" class="tag" fill="#DBEAFE">2 REPLICAS · NODE.JS 20</text>
+    <rect x="683" y="344" width="79" height="62" rx="9" fill="#12223F" stroke="#93C5FD"/>
+    <rect x="773" y="344" width="79" height="62" rx="9" fill="#12223F" stroke="#93C5FD"/>
+    <circle cx="700" cy="359" r="4" fill="#34D399"/>
+    <circle cx="790" cy="359" r="4" fill="#34D399"/>
+    <text x="695" y="379" class="cardText">Next.js</text>
+    <text x="695" y="396" class="tiny">UI + API routes</text>
+    <text x="785" y="379" class="cardText">Next.js</text>
+    <text x="785" y="396" class="tiny">UI + API routes</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon points="1003,334 1102,285 1212,334 1113,383" fill="url(#cyanTop)" stroke="#A5F3FC"/>
+    <polygon points="1003,334 1113,383 1113,444 1003,395" fill="url(#cyanFront)" stroke="#22D3EE"/>
+    <polygon points="1113,383 1212,334 1212,395 1113,444" fill="#155E75" stroke="#22D3EE"/>
+    <text x="1020" y="346" class="cardTitle">Kubernetes API</text>
+    <text x="1020" y="377" class="cardText">Core · Apps · Batch</text>
+    <text x="1020" y="398" class="small">RBAC-authorized requests</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon points="1005,555 1112,502 1220,555 1113,608" fill="url(#greenTop)" stroke="#A7F3D0"/>
+    <polygon points="1005,555 1113,608 1113,691 1005,638" fill="url(#greenFront)" stroke="#34D399"/>
+    <polygon points="1113,608 1220,555 1220,638 1113,691" fill="#065F46" stroke="#34D399"/>
+    <text x="1022" y="567" class="cardTitle">Cluster resources</text>
+    <text x="1022" y="598" class="cardText">Pods · Deployments · Nodes</text>
+    <text x="1022" y="620" class="cardText">Services · Config · Storage</text>
+    <text x="1022" y="642" class="small">Metrics Server, when installed</text>
+  </g>
+
+  <g>
+    <rect x="661" y="574" width="248" height="72" rx="15" fill="#211B3D" stroke="#8B5CF6"/>
+    <path d="M681 595h14v14h-14zM685 590v5M691 590v5M685 609v5M691 609v5M676 599h5M676 605h5M695 599h5M695 605h5" stroke="#C4B5FD" stroke-width="1.5" stroke-linecap="round"/>
+    <text x="710" y="598" class="cardTitle">ServiceAccount + RBAC</text>
+    <text x="710" y="621" class="cardText">ClusterRoleBinding scopes API access</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <polygon points="116,685 199,644 299,685 216,726" fill="url(#violetTop)" stroke="#DDD6FE"/>
+    <polygon points="116,685 216,726 216,783 116,742" fill="url(#violetFront)" stroke="#A78BFA"/>
+    <polygon points="216,726 299,685 299,742 216,783" fill="#5B21B6" stroke="#A78BFA"/>
+    <text x="137" y="697" class="cardTitle">Gemini API</text>
+    <text x="137" y="728" class="cardText">Optional AI assistant</text>
+    <text x="137" y="748" class="small">Server-side key via Secret</text>
+  </g>
+
+  <g>
+    <rect x="348" y="672" width="204" height="66" rx="14" fill="#1D293B" stroke="#64748B" stroke-dasharray="5 4"/>
+    <circle cx="370" cy="694" r="9" stroke="#94A3B8" stroke-width="1.5"/>
+    <path d="M370 689v6l4 2" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round"/>
+    <text x="389" y="697" class="cardTitle" font-size="14">Demo mode</text>
+    <text x="366" y="720" class="small">Sample data if no cluster is reachable</text>
+  </g>
+  <path d="M661 438H618V705H554" stroke="#94A3B8" stroke-width="2" stroke-dasharray="5 6"/>
+  <text x="586" y="690" class="tiny" transform="rotate(-90 586 690)">fallback data path</text>
+
+  <rect x="650" y="728" width="682" height="38" rx="12" fill="#0F172A" stroke="#334155"/>
+  <circle cx="672" cy="747" r="5" fill="#34D399"/>
+  <text x="687" y="751" class="small">Health probes: /api/cluster</text>
+  <circle cx="915" cy="747" r="5" fill="#60A5FA"/>
+  <text x="930" y="751" class="small">Non-root container · port 3000</text>
+  <circle cx="1190" cy="747" r="5" fill="#FBBF24"/>
+  <text x="1205" y="751" class="small">Secret is optional</text>
+
+  <path d="M62 838H1378" stroke="#293750"/>
+  <circle cx="78" cy="865" r="5" fill="#60A5FA"/>
+  <text x="92" y="869" class="small">User traffic</text>
+  <circle cx="220" cy="865" r="5" fill="#67E8F9"/>
+  <text x="234" y="869" class="small">Kubernetes API traffic</text>
+  <circle cx="431" cy="865" r="5" fill="#C4B5FD"/>
+  <text x="445" y="869" class="small">Optional integrations</text>
+  <text x="1378" y="869" class="tiny" text-anchor="end">Conceptual view · see k8s/ manifests and DEPLOYMENT-GUIDE.md</text>
+</svg>
