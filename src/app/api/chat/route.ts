@@ -23,21 +23,6 @@ function isChatMessage(value: unknown): value is ChatMessage {
   )
 }
 
-function getTextFromGeminiEvent(line: string): string | null {
-  if (!line.startsWith('data:')) return null
-
-  const data = line.slice(5).trim()
-  if (!data || data === '[DONE]') return null
-
-  const event = JSON.parse(data) as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
-  }
-
-  return event.candidates?.[0]?.content?.parts
-    ?.map((part) => part.text ?? '')
-    .join('') ?? ''
-}
-
 export async function POST(request: Request) {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
@@ -81,11 +66,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'The chat messages are invalid.' }, { status: 400 })
   }
 
-  const model = encodeURIComponent(process.env.GEMINI_MODEL || 'gemini-2.5-flash')
+  const model = encodeURIComponent(process.env.GEMINI_MODEL || 'gemini-3.5-flash')
   let upstream: Response
   try {
     upstream = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
       {
         method: 'POST',
         headers: {
@@ -116,47 +101,46 @@ export async function POST(request: Request) {
   }
 
   if (!upstream.ok || !upstream.body) {
+    const error = upstream.status === 404
+      ? `Gemini could not find or use model "${decodeURIComponent(model)}". Set GEMINI_MODEL to a model available to this API key.`
+      : upstream.status === 401 || upstream.status === 403
+        ? `Gemini rejected the API key or its permissions (HTTP ${upstream.status}). Verify the key and that the Gemini API is enabled for its project.`
+        : upstream.status === 429
+          ? 'Gemini API quota or rate limit was reached (HTTP 429). Check the project quota and try again later.'
+          : upstream.status === 503
+            ? 'Gemini is temporarily overloaded. Please retry in a few moments.'
+          : `Gemini could not complete the request (HTTP ${upstream.status}). Check the model configuration and Google AI project.`
     console.error(`Gemini chat provider returned HTTP ${upstream.status}.`)
     return NextResponse.json(
-      { error: 'The AI service could not complete the request. Check the server configuration and try again.' },
+      { error },
       { status: 502 }
     )
   }
 
-  const stream = new ReadableStream<Uint8Array>({
-    async start(controller) {
-      const reader = upstream.body!.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ''
+  let result: {
+    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
+  }
+  try {
+    result = await upstream.json()
+  } catch {
+    console.error('Gemini chat response was not valid JSON.')
+    return NextResponse.json({ error: 'Gemini returned an invalid response. Please try again.' }, { status: 502 })
+  }
 
-      const writeEvent = (line: string) => {
-        const text = getTextFromGeminiEvent(line)
-        if (text) controller.enqueue(new TextEncoder().encode(text))
-      }
+  const text = result.candidates?.[0]?.content?.parts
+    ?.map((part) => part.text ?? '')
+    .join('')
+    .trim()
 
-      try {
-        while (true) {
-          const { done, value } = await reader.read()
-          buffer += decoder.decode(value, { stream: !done })
-          const lines = buffer.split(/\r?\n/)
-          buffer = lines.pop() || ''
-          lines.forEach(writeEvent)
+  if (!text) {
+    console.error('Gemini chat response did not contain text.')
+    return NextResponse.json(
+      { error: 'Gemini returned no text. The request may have been blocked; please try rephrasing it.' },
+      { status: 502 }
+    )
+  }
 
-          if (done) break
-        }
-
-        if (buffer) writeEvent(buffer)
-        controller.close()
-      } catch {
-        console.error('Gemini chat response stream failed.')
-        controller.error(new Error('The AI response stream was interrupted. Please try again.'))
-      } finally {
-        reader.releaseLock()
-      }
-    }
-  })
-
-  return new Response(stream, {
+  return new Response(text, {
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
       'Cache-Control': 'no-cache, no-transform',

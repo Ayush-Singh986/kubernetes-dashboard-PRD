@@ -135,7 +135,7 @@ Check out our [**Dashboard Gallery**](./GALLERY.md) to preview screenshots of th
 
 ### Gemini Assistant Configuration
 
-Set `GEMINI_API_KEY` in the server environment to enable chat. The default model is `gemini-2.5-flash`; set `GEMINI_MODEL` to override it. For Docker Compose, place these values in a local `.env` file or the process environment. For Kubernetes, create a Secret named `kubernetes-dashboard-secrets` with a `GEMINI_API_KEY` key; the deployment reads it optionally, so the dashboard can still start when chat is not configured. Never commit the key or expose it through a `NEXT_PUBLIC_` variable.
+Set `GEMINI_API_KEY` in the server environment to enable chat. The default model is `gemini-3.5-flash`; set `GEMINI_MODEL` to override it. The API uses Gemini's `generateContent` method; replies appear after generation completes. For Docker Compose, place these values in a local `.env` file or the process environment. For Kubernetes, create a Secret named `kubernetes-dashboard-secrets` with a `GEMINI_API_KEY` key; the deployment reads it optionally, so the dashboard can still start when chat is not configured. Never commit the key or expose it through a `NEXT_PUBLIC_` variable.
 
 The assistant only receives the conversation text submitted in chat; it does not read cluster state or execute commands. The current sign-in flow is a client-side demo and is not server-side authentication. Before exposing the dashboard publicly, protect it with real server-side authentication and apply rate limits at an authenticated gateway to prevent unauthorized use of the paid AI endpoint.
 

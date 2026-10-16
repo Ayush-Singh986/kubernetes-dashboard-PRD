@@ -14,7 +14,7 @@ services:
       - HOSTNAME=0.0.0.0
       - NEXT_PUBLIC_DEMO_MODE=true
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
-      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.5-flash}
     # Optional: Mount your local kubeconfig to interact with a real local cluster
     # volumes:
     #   - ${HOME}/.kube/config:/home/nextjs/.kube/config:ro

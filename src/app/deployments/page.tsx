@@ -278,7 +278,7 @@ export default function DeploymentsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground font-mono">{deployments.length}</div>
+              <div className="text-2xl font-bold text-foreground font-mono">{error ? "—" : deployments.length}</div>
               <p className="text-xs text-muted-foreground mt-1">Across all namespaces</p>
             </CardContent>
           </Card>
@@ -291,7 +291,7 @@ export default function DeploymentsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">{readyDeployments}</div>
+              <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">{error ? "—" : readyDeployments}</div>
               <p className="text-xs text-muted-foreground mt-1">Fully provisioned replicas</p>
             </CardContent>
           </Card>
@@ -304,7 +304,7 @@ export default function DeploymentsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 font-mono">{progressingDeployments}</div>
+              <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 font-mono">{error ? "—" : progressingDeployments}</div>
               <p className="text-xs text-muted-foreground mt-1">Active rollout progression</p>
             </CardContent>
           </Card>
@@ -317,11 +317,19 @@ export default function DeploymentsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground font-mono">{totalReplicas}</div>
+              <div className="text-2xl font-bold text-foreground font-mono">{error ? "—" : totalReplicas}</div>
               <p className="text-xs text-muted-foreground mt-1">Desired pod allocations</p>
             </CardContent>
           </Card>
         </div>
+
+        {error && (
+          <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+            <p className="font-semibold">Live deployment data is unavailable</p>
+            <p className="mt-1">{error}</p>
+            <p className="mt-1 text-xs">Connect to a reachable Kubernetes cluster, or explicitly enable demo mode to view sample data.</p>
+          </div>
+        )}
 
         {/* Main Table Card */}
         <Card className="overflow-hidden">
@@ -396,6 +404,13 @@ export default function DeploymentsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
+                {!loading && !error && filteredDeployments.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
+                      No deployments found.
+                    </TableCell>
+                  </TableRow>
+                )}
                 {filteredDeployments.map((d) => {
                   const depKey = `${d.namespace}:${d.name}`
                   const isSelected = selectedDeployments.has(depKey)

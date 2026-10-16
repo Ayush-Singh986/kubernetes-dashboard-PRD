@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
+import Link from "next/link"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { ProtectedRoute } from "@/components/protected-route"
 import { ActivityFeed } from "@/components/activity-feed"
@@ -14,7 +15,6 @@ import { apiClient, ClusterInfo, Pod, Node, Service } from "@/lib/api-client"
 import { 
   Container, 
   Server,
-  Shield,
   ArrowUpRight,
   Clock,
   AlertTriangle,
@@ -29,12 +29,16 @@ export default function Home() {
   const [nodes, setNodes] = useState<Node[]>([])
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isDemoMode, setIsDemoMode] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const hasLoaded = useRef(false)
 
   const fetchData = useCallback(async () => {
     try {
-      setLoading(true)
+      if (!hasLoaded.current) setLoading(true)
+      setRefreshing(true)
       const [info, podsData, nodesData, servicesData] = await Promise.all([
         apiClient.getClusterInfo(),
         apiClient.getPods(),
@@ -48,10 +52,13 @@ export default function Home() {
       setServices(servicesData)
       setError(null)
       setIsDemoMode(info.name === 'demo-cluster')
+      setLastUpdated(new Date())
+      hasLoaded.current = true
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch cluster data')
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
   }, [])
 
@@ -93,62 +100,78 @@ export default function Home() {
 
   const runningPodsCount = pods.filter(p => p.status === 'Running').length
   const readyNodesCount = nodes.filter(n => n.status === 'Ready').length
+  const summaryValue = (value: number) => error ? "—" : loading && !clusterInfo ? "…" : value
+  const connectionLabel = error ? isDemoMode ? "Demo data unavailable" : "Cluster unavailable" : isDemoMode ? "Demo environment" : loading ? "Connecting to cluster" : "Cluster connected"
 
   return (
     <ProtectedRoute>
       <DashboardLayout>
         <div className="space-y-6 pb-12">
-          {/* Header Banner */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl border border-border/80 bg-gradient-to-r from-card via-card/90 to-muted/30 shadow-xs">
-            <div>
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
-                  <Shield className="size-5" />
-                </div>
+          <section className="relative isolate overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-5 text-white shadow-lg sm:p-7">
+            <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-32 size-80 rounded-full bg-sky-500/15 blur-3xl" />
+            <div aria-hidden="true" className="pointer-events-none absolute -bottom-36 right-1/3 size-64 rounded-full bg-indigo-500/10 blur-3xl" />
+            <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+              <div className="space-y-4">
+                <Badge variant="outline" className="gap-2 border-white/15 bg-white/5 text-slate-200">
+                  <span className={`size-2 rounded-full ${error ? "bg-rose-400" : isDemoMode ? "bg-sky-400" : loading ? "animate-pulse bg-amber-400" : "bg-emerald-400"}`} />
+                  {connectionLabel}
+                </Badge>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-xl font-bold tracking-tight text-foreground">
-                      Cluster Overview
-                    </h1>
-                    {isDemoMode && (
-                      <Badge variant="secondary" className="text-[11px] font-semibold">
-                        Demo Environment
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Kubernetes {clusterInfo?.version || (loading ? "…" : "version unavailable")} • {clusterInfo?.nodes ?? nodes.length} nodes • {runningPodsCount}/{pods.length} running pods
+                  <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Cluster overview</h1>
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300">
+                    A live view of your Kubernetes resources, workload health, and operational signals.
                   </p>
                 </div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-400">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Server className="size-3.5" />
+                    {clusterInfo?.name || (loading ? "Finding cluster…" : "No active cluster")}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Layers className="size-3.5" />
+                    {clusterInfo?.version || "Kubernetes version unavailable"}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock className="size-3.5" />
+                    {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : "Waiting for first sync"}
+                  </span>
+                </div>
+              </div>
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void fetchData()}
+                  disabled={refreshing}
+                  className="border-white/20 bg-white/5 text-white shadow-none hover:bg-white/10 hover:text-white"
+                >
+                  <RefreshCw className={`mr-2 size-3.5 ${refreshing ? "animate-spin" : ""}`} />
+                  Refresh
+                </Button>
+                <Button asChild size="sm" className="bg-sky-400 text-slate-950 hover:bg-sky-300">
+                  <Link href="/workloads">
+                    Inspect workloads
+                    <ArrowUpRight className="ml-1.5 size-3.5" />
+                  </Link>
+                </Button>
               </div>
             </div>
-            
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={fetchData}
-                className="shadow-xs"
-              >
-                <RefreshCw className={`size-3.5 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Refresh State
-              </Button>
-            </div>
-          </div>
+          </section>
 
           {error && (
-            <div role="alert" className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+            <div role="alert" className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-xs text-destructive">
               <AlertTriangle className="mt-0.5 size-4 shrink-0" />
               <div>
-                <p className="font-semibold">Unable to refresh cluster overview</p>
-                <p className="mt-1">{error}</p>
+                <p className="font-semibold">Live cluster data is unavailable</p>
+                <p className="mt-1 leading-relaxed">{error} Check your Kubernetes context and server connectivity, then refresh.</p>
               </div>
             </div>
           )}
 
           {/* Metrics Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-            <Card className="hover:border-primary/40 transition-all duration-200">
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
+            <Link href="/nodes" aria-label="View cluster nodes" className="group block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+            <Card className="h-full border-border/70 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-sky-500/40 group-hover:shadow-md">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                 <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Compute Nodes
@@ -159,20 +182,23 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-baseline justify-between">
-                  <div className="text-2xl font-bold tracking-tight text-foreground font-mono">
-                    {clusterInfo?.nodes ?? nodes.length}
+                  <div className="text-3xl font-semibold tracking-tight text-foreground font-mono">
+                    {summaryValue(clusterInfo?.nodes ?? nodes.length)}
                   </div>
-                  <Badge variant="success" className="text-[10px] h-4.5 px-1.5 font-semibold">
-                    {readyNodesCount} Ready
+                  <Badge variant={error ? "secondary" : "success"} className="text-[10px] h-4.5 px-1.5 font-semibold">
+                    {error ? "Unavailable" : `${readyNodesCount} Ready`}
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
-                  <span>Current cluster node inventory</span>
+                <p className="mt-1.5 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Nodes in this cluster</span>
+                  <ArrowUpRight className="size-3.5 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
                 </p>
               </CardContent>
             </Card>
+            </Link>
 
-            <Card className="hover:border-primary/40 transition-all duration-200">
+            <Link href="/pods" aria-label="View cluster pods" className="group block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+            <Card className="h-full border-border/70 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-emerald-500/40 group-hover:shadow-md">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                 <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Container Pods
@@ -183,20 +209,23 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-baseline justify-between">
-                  <div className="text-2xl font-bold tracking-tight text-foreground font-mono">
-                    {clusterInfo?.pods ?? pods.length}
+                  <div className="text-3xl font-semibold tracking-tight text-foreground font-mono">
+                    {summaryValue(clusterInfo?.pods ?? pods.length)}
                   </div>
-                  <Badge variant="success" className="text-[10px] h-4.5 px-1.5 font-semibold">
-                    {runningPodsCount} Running
+                  <Badge variant={error ? "secondary" : "success"} className="text-[10px] h-4.5 px-1.5 font-semibold">
+                    {error ? "Unavailable" : `${runningPodsCount} Running`}
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
-                  <span>Across all namespace zones</span>
+                <p className="mt-1.5 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Across all namespaces</span>
+                  <ArrowUpRight className="size-3.5 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
                 </p>
               </CardContent>
             </Card>
+            </Link>
 
-            <Card className="hover:border-primary/40 transition-all duration-200">
+            <Link href="/services" aria-label="View cluster services" className="group block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+            <Card className="h-full border-border/70 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-violet-500/40 group-hover:shadow-md">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                 <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Network Services
@@ -207,20 +236,23 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-baseline justify-between">
-                  <div className="text-2xl font-bold tracking-tight text-foreground font-mono">
-                    {clusterInfo?.services ?? services.length}
+                  <div className="text-3xl font-semibold tracking-tight text-foreground font-mono">
+                    {summaryValue(clusterInfo?.services ?? services.length)}
                   </div>
-                  <Badge variant="purple" className="text-[10px] h-4.5 px-1.5 font-semibold">
-                    Observed
+                  <Badge variant={error ? "secondary" : "purple"} className="text-[10px] h-4.5 px-1.5 font-semibold">
+                    {error ? "Unavailable" : "Observed"}
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
-                  <span>ClusterIP & LoadBalancers</span>
+                <p className="mt-1.5 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Service discovery and routing</span>
+                  <ArrowUpRight className="size-3.5 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
                 </p>
               </CardContent>
             </Card>
+            </Link>
 
-            <Card className="hover:border-primary/40 transition-all duration-200">
+            <Link href="/namespaces" aria-label="View cluster namespaces" className="group block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+            <Card className="h-full border-border/70 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-amber-500/40 group-hover:shadow-md">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                 <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Namespaces
@@ -231,15 +263,17 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-baseline justify-between">
-                  <div className="text-2xl font-bold tracking-tight text-foreground font-mono">
-                    {clusterInfo?.namespaces ?? 0}
+                  <div className="text-3xl font-semibold tracking-tight text-foreground font-mono">
+                    {summaryValue(clusterInfo?.namespaces ?? 0)}
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
-                  <span>Namespaces in the selected cluster</span>
+                <p className="mt-1.5 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Logical resource boundaries</span>
+                  <ArrowUpRight className="size-3.5 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
                 </p>
               </CardContent>
             </Card>
+            </Link>
           </div>
 
           {/* Quick Actions */}
@@ -293,6 +327,17 @@ export default function Home() {
                       </div>
                     </div>
                   ))}
+                  {!loading && pods.length === 0 && (
+                    <div className="rounded-xl border border-dashed border-border p-6 text-center">
+                      <Container className="mx-auto size-5 text-muted-foreground" />
+                      <p className="mt-2 text-sm font-medium">
+                        {error ? "Pod data is unavailable" : "No pods to show"}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {error ? "Reconnect to a cluster to load live workloads." : "Pods will appear here when they are available."}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

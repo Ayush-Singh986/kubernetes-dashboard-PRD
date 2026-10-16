@@ -44,7 +44,7 @@ spec:
                   key: GEMINI_API_KEY
                   optional: true
             - name: GEMINI_MODEL
-              value: "gemini-2.5-flash"
+              value: "gemini-3.5-flash"
           resources:
             requests:
               memory: "128Mi"

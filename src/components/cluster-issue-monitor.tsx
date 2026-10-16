@@ -37,7 +37,7 @@ export function ClusterIssueMonitor() {
   const warningCount = snapshot?.alerts.filter(alert => alert.severity === "warning").length || 0
 
   return (
-    <Card>
+    <Card id="live-issue-monitor" className="scroll-mt-20">
       <CardHeader className="flex flex-row items-start justify-between gap-3 pb-3">
         <div>
           <CardTitle className="flex items-center gap-2 text-base">

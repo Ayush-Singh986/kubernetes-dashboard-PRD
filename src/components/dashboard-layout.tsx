@@ -92,6 +92,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [contexts, setContexts] = React.useState<ContextItem[]>([])
   const [currentContext, setCurrentContext] = React.useState<string>('')
   const [switchingContext, setSwitchingContext] = React.useState(false)
+  const [clusterConnection, setClusterConnection] = React.useState<'checking' | 'connected' | 'disconnected' | 'demo'>(
+    isDemoMode ? 'demo' : 'checking'
+  )
 
   React.useEffect(() => {
     apiClient.getContexts().then(res => {
@@ -100,6 +103,33 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       setCurrentContext(stored || res.currentContext)
     }).catch(() => {})
   }, [])
+
+  React.useEffect(() => {
+    if (isDemoMode) {
+      setClusterConnection('demo')
+      return
+    }
+
+    let active = true
+    const checkClusterConnection = async () => {
+      try {
+        const cluster = await apiClient.getClusterInfo()
+        if (active) {
+          setClusterConnection(cluster.name === 'demo-cluster' ? 'demo' : 'connected')
+        }
+      } catch {
+        if (active) setClusterConnection('disconnected')
+      }
+    }
+
+    void checkClusterConnection()
+    const interval = window.setInterval(() => void checkClusterConnection(), 30000)
+
+    return () => {
+      active = false
+      window.clearInterval(interval)
+    }
+  }, [isDemoMode])
 
   const handleContextChange = async (newContext: string) => {
     if (newContext === currentContext || switchingContext) return
@@ -167,10 +197,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                             : "hover:bg-sidebar-accent hover:text-foreground text-muted-foreground"
                         )}
                       >
-                        <a href={item.href} className="flex items-center gap-2.5">
+                        <Link href={item.href} className="flex items-center gap-2.5">
                           <Icon className={cn("size-4", isActive ? "text-primary-foreground" : "text-muted-foreground")} />
                           <span>{item.name}</span>
-                        </a>
+                        </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )
@@ -201,10 +231,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                             : "hover:bg-sidebar-accent hover:text-foreground text-muted-foreground"
                         )}
                       >
-                        <a href={item.href} className="flex items-center gap-2.5">
+                        <Link href={item.href} className="flex items-center gap-2.5">
                           <Icon className={cn("size-4", isActive ? "text-primary-foreground" : "text-muted-foreground")} />
                           <span>{item.name}</span>
-                        </a>
+                        </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )
@@ -288,14 +318,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </Badge>
               )}
               
-              <Button variant="ghost" size="icon" className="size-8 relative rounded-lg text-muted-foreground hover:text-foreground">
-                <Bell className="size-4" />
-                <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-rose-500 animate-pulse" />
+              <Button asChild variant="ghost" size="icon" className="size-8 relative rounded-lg text-muted-foreground hover:text-foreground">
+                <Link href="/#live-issue-monitor" aria-label="Jump to live issue monitor" title="Live issue monitor">
+                  <Bell className="size-4" />
+                </Link>
               </Button>
               
-              <Badge variant="outline" className="h-7.5 px-2.5 text-xs font-medium gap-1.5 border-emerald-500/30 bg-emerald-500/5 text-foreground rounded-lg hidden sm:inline-flex">
-                <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">Connected</span>
+              <Badge
+                variant={clusterConnection === 'connected' ? 'success' : clusterConnection === 'disconnected' ? 'destructive' : 'secondary'}
+                className="h-7.5 px-2.5 text-xs font-medium gap-1.5 rounded-lg hidden sm:inline-flex"
+                title={clusterConnection === 'disconnected' ? 'The server could not reach the configured Kubernetes cluster' : undefined}
+              >
+                <span className={cn(
+                  "size-2 rounded-full",
+                  clusterConnection === 'connected' && "bg-emerald-500",
+                  clusterConnection === 'disconnected' && "bg-rose-500",
+                  clusterConnection === 'checking' && "bg-amber-500 animate-pulse",
+                  clusterConnection === 'demo' && "bg-sky-500"
+                )} />
+                <span className="font-semibold">
+                  {clusterConnection === 'connected' ? 'Connected' : clusterConnection === 'disconnected' ? 'Disconnected' : clusterConnection === 'demo' ? 'Demo' : 'Checking'}
+                </span>
               </Badge>
             </div>
           </div>

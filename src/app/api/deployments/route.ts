@@ -11,7 +11,14 @@ export async function GET(request: Request) {
   const { kc, isAvailable } = getKubeConfig(request)
 
   if (DEMO_MODE || !isAvailable) {
-    return NextResponse.json(k8sStore.getDeployments(namespace))
+    if (DEMO_MODE) {
+      return NextResponse.json(k8sStore.getDeployments(namespace))
+    }
+
+    return NextResponse.json(
+      { error: 'No Kubernetes cluster is configured. Enable demo mode explicitly to use sample deployments.' },
+      { status: 503 }
+    )
   }
 
   try {
@@ -55,7 +62,10 @@ export async function GET(request: Request) {
 
     return NextResponse.json(deployments)
   } catch (error) {
-    console.error('Error fetching deployments from K8s, using store fallback:', error)
-    return NextResponse.json(k8sStore.getDeployments(namespace))
+    console.error('Error fetching live deployments from Kubernetes:', error)
+    return NextResponse.json(
+      { error: 'Unable to fetch live deployments. Verify cluster connectivity and Deployment read permissions.' },
+      { status: 503 }
+    )
   }
 }
